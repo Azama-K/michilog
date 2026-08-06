@@ -42,9 +42,10 @@ function App() {
   const recorder = useJourneyRecorder({ mode, onSave: handleJourneySaved })
   const isRecording = recorder.status === 'recording' || recorder.status === 'requesting'
   const selectedJourney = useMemo(
-    () => journeys.find((journey) => journey.id === selectedJourneyId),
+    () => journeys.find((journey) => journey.id === selectedJourneyId) ?? journeys[0],
     [journeys, selectedJourneyId],
   )
+  const effectiveSelectedJourneyId = selectedJourney?.id ?? ''
 
   const changeView = (view: AppView) => {
     setMenuOpen(false)
@@ -101,7 +102,7 @@ function App() {
       {menuOpen ? (
         <aside className="mobile-menu-panel" aria-label="データとプライバシー">
           <h2>データとプライバシー</h2>
-          <p>GPSを使うのは記録中だけです。通った場所はサーバーへ送らず、この端末のブラウザ内に保存します。</p>
+          <p>GPSを使うのは記録中だけです。記録データはこの端末のブラウザ内に保存します。背景地図の表示時は、表示範囲の地図画像をOpenStreetMapから取得します。</p>
           <button type="button" onClick={() => changeView('history')}>履歴とバックアップを開く</button>
           <button className="mobile-menu-close" type="button" onClick={() => setMenuOpen(false)}>閉じる</button>
         </aside>
@@ -122,8 +123,8 @@ function App() {
             onModeChange={setMode}
             isRecording={isRecording}
             activePoints={recorder.active?.points ?? []}
-            selectedPoints={selectedJourney?.points}
-            selectedMode={selectedJourney?.mode}
+            journeys={journeys}
+            selectedJourneyId={effectiveSelectedJourneyId}
           />
           <RecordingPanel
             mode={mode}
@@ -138,14 +139,14 @@ function App() {
           />
           <RecentJourneys
             journeys={journeys}
-            selectedId={selectedJourneyId}
+            selectedId={effectiveSelectedJourneyId}
             onSelect={selectJourney}
             onOpenHistory={() => setActiveView('history')}
           />
           <footer className="map-status-bar">
             <span>GPS: 許可後に開始</span>
             <span>保存先: この端末</span>
-            <span>地図: オフライン概略図</span>
+            <span>地図: OpenStreetMap</span>
           </footer>
         </main>
       )}
