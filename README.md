@@ -2,6 +2,12 @@
 
 道路や鉄道路線の「通った場所」を、ブラウザの位置情報またはデモ経路から記録するモバイル優先のWebアプリです。
 
+## 公開版
+
+- アプリ: <https://michilog.vercel.app/>
+- ソースコード: <https://github.com/Azama-K/michilog>
+- ホスティング: Vercel Hobby（個人・非商用利用）
+
 ![みちログのモバイルデザイン](docs/design/michilog-mobile-concept.png)
 
 ## 初版でできること
