@@ -36,6 +36,8 @@
 
 Node.jsとnpmが必要です。
 
+公開環境と同じNode.js 22を使用します。
+
 ```bash
 npm install
 npm run dev
