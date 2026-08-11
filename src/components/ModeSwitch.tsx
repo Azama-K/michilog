@@ -19,7 +19,17 @@ export function ModeSwitch({ mode, onChange, disabled = false, className = '' }:
         aria-pressed={mode === 'road'}
       >
         <Icon name="road" size={22} />
-        道路
+        車
+      </button>
+      <button
+        className={mode === 'walk' ? 'is-active is-walk' : ''}
+        type="button"
+        onClick={() => onChange('walk')}
+        disabled={disabled}
+        aria-pressed={mode === 'walk'}
+      >
+        <Icon name="walk" size={22} />
+        徒歩
       </button>
       <button
         className={mode === 'rail' ? 'is-active is-rail' : ''}
@@ -29,9 +39,8 @@ export function ModeSwitch({ mode, onChange, disabled = false, className = '' }:
         aria-pressed={mode === 'rail'}
       >
         <Icon name="rail" size={22} />
-        鉄道
+        電車
       </button>
     </div>
   )
 }
-

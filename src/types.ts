@@ -1,4 +1,4 @@
-export type JourneyMode = 'road' | 'rail'
+export type JourneyMode = 'road' | 'walk' | 'rail'
 export type JourneySource = 'gps' | 'demo'
 
 export interface TrackPoint {
@@ -32,5 +32,4 @@ export interface ActiveJourney {
 }
 
 export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'error'
-export type AppView = 'map' | 'record' | 'history'
-
+export type AppView = 'map' | 'history'

@@ -20,7 +20,7 @@ interface MapCanvasProps {
   isRecording: boolean
   activePoints: TrackPoint[]
   journeys: Journey[]
-  selectedJourneyId?: string
+  focusJourneyId?: string
 }
 
 const DEFAULT_CENTER: LatLngExpression = [35.6812, 139.7671]
@@ -47,28 +47,28 @@ function ViewportController({ points, focusRequest }: { points: TrackPoint[]; fo
   return null
 }
 
-const routeColor = (mode: JourneyMode) => mode === 'road' ? '#ff6248' : '#078d85'
-
 export function MapCanvas({
   mode,
   onModeChange,
   isRecording,
   activePoints,
   journeys,
-  selectedJourneyId,
+  focusJourneyId,
 }: MapCanvasProps) {
   const [focusRequest, setFocusRequest] = useState(0)
   const [tileStatus, setTileStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const selectedJourney = useMemo(
-    () => journeys.find((journey) => journey.id === selectedJourneyId) ?? journeys[0],
-    [journeys, selectedJourneyId],
+  const focusJourney = useMemo(
+    () => journeys.find((journey) => journey.id === focusJourneyId),
+    [focusJourneyId, journeys],
   )
-  const focusPoints = activePoints.length > 0 ? activePoints : selectedJourney?.points ?? []
+  const allCoveragePoints = useMemo(() => journeys.flatMap((journey) => journey.points), [journeys])
+  const focusPoints = activePoints.length > 0
+    ? activePoints
+    : focusJourney?.points ?? allCoveragePoints
   const activeLatLngs = useMemo(() => toLatLngs(activePoints), [activePoints])
-  const focusMode = activePoints.length > 0 ? mode : selectedJourney?.mode ?? mode
 
   return (
-    <section className="map-canvas" aria-label="旅の地図">
+    <section className="map-canvas" aria-label="これまでに通った道の地図">
       <ModeSwitch
         mode={mode}
         onChange={onModeChange}
@@ -97,7 +97,6 @@ export function MapCanvas({
         <ViewportController points={focusPoints} focusRequest={focusRequest} />
 
         {journeys.map((journey) => {
-          const isSelected = journey.id === selectedJourney?.id && activePoints.length === 0
           const positions = toLatLngs(journey.points)
           if (positions.length < 2) return null
           return (
@@ -105,12 +104,11 @@ export function MapCanvas({
               key={journey.id}
               positions={positions}
               pathOptions={{
-                color: routeColor(journey.mode),
-                dashArray: journey.mode === 'rail' ? '10 7' : undefined,
+                color: '#1769f4',
                 lineCap: 'round',
                 lineJoin: 'round',
-                opacity: isSelected ? 0.95 : 0.32,
-                weight: isSelected ? 7 : 4,
+                opacity: 0.9,
+                weight: 6,
               }}
             />
           )
@@ -120,8 +118,7 @@ export function MapCanvas({
           <Polyline
             positions={activeLatLngs}
             pathOptions={{
-              color: routeColor(mode),
-              dashArray: mode === 'rail' ? '10 7' : undefined,
+              color: '#ff6248',
               lineCap: 'round',
               lineJoin: 'round',
               opacity: 1,
@@ -130,15 +127,15 @@ export function MapCanvas({
           />
         ) : null}
 
-        {focusPoints.length > 0 ? (
+        {activePoints.length > 0 ? (
           <>
             <CircleMarker
-              center={[focusPoints[0].latitude, focusPoints[0].longitude]}
+              center={[activePoints[0].latitude, activePoints[0].longitude]}
               radius={6}
-              pathOptions={{ color: '#ffffff', fillColor: routeColor(focusMode), fillOpacity: 1, weight: 3 }}
+              pathOptions={{ color: '#ffffff', fillColor: '#ff6248', fillOpacity: 1, weight: 3 }}
             />
             <CircleMarker
-              center={[focusPoints.at(-1)!.latitude, focusPoints.at(-1)!.longitude]}
+              center={[activePoints.at(-1)!.latitude, activePoints.at(-1)!.longitude]}
               radius={9}
               pathOptions={{ color: '#ffffff', fillColor: '#246bfd', fillOpacity: 1, weight: 3 }}
             />
@@ -147,16 +144,15 @@ export function MapCanvas({
       </MapContainer>
 
       <div className="map-legend" aria-label="地図の凡例">
-        <span><i className="legend-road" />道路</span>
-        <span><i className="legend-rail" />鉄道</span>
-        <span><i className="legend-location" />現在地</span>
+        <span><i className="legend-visited" />通った道</span>
+        <span><i className="legend-recording" />記録中</span>
       </div>
       <button
         className="map-recenter-control"
         type="button"
         onClick={() => setFocusRequest((current) => current + 1)}
-        aria-label="選択中の記録を地図に収める"
-        title="選択中の記録を表示"
+        aria-label="通った道を地図に収める"
+        title="通った道をすべて表示"
       >
         <Icon name="location" />
       </button>

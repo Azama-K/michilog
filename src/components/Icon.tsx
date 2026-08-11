@@ -7,6 +7,7 @@ export type IconName =
   | 'lock'
   | 'menu'
   | 'road'
+  | 'walk'
   | 'rail'
   | 'route'
   | 'timer'
@@ -21,6 +22,7 @@ export type IconName =
   | 'trash'
   | 'download'
   | 'info'
+  | 'settings'
 
 interface IconProps extends SVGProps<SVGSVGElement> {
   name: IconName
@@ -83,6 +85,13 @@ export function Icon({ name, size = 24, ...props }: IconProps) {
           <path d="m5 10 1.6-4h10.8l1.6 4" />
           <rect x="3.5" y="9" width="17" height="8" rx="2" />
           <path d="M6.5 17v2M17.5 17v2M7 13h.01M17 13h.01" />
+        </svg>
+      )
+    case 'walk':
+      return (
+        <svg {...common}>
+          <circle cx="13" cy="4.5" r="2" />
+          <path d="m10.5 9 2.5-2 2.5 3 3 1.5M13 8l-1 5 3 3.5M12 13l-3 2-2 4M15 16.5l3 3" />
         </svg>
       )
     case 'rail':
@@ -176,6 +185,12 @@ export function Icon({ name, size = 24, ...props }: IconProps) {
           <path d="M12 11v5M12 8h.01" />
         </svg>
       )
+    case 'settings':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.86 2.86-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1H9.55a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.86-2.86.06-.06A1.7 1.7 0 0 0 3.75 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4V9.55a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.86-2.86.06.06A1.7 1.7 0 0 0 8.15 3.75a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1h4.05a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.86 2.86-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4v4.05a1.7 1.7 0 0 0-1.1.4 1.7 1.7 0 0 0-.6 1Z" />
+        </svg>
+      )
   }
 }
-

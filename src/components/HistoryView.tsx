@@ -37,8 +37,8 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
     <main className="history-view">
       <section className="history-intro">
         <div>
-          <h1>旅の履歴</h1>
-          <p>通った道路と鉄道路線を、端末内の記録から振り返れます。</p>
+          <h1>通過記録</h1>
+          <p>青い地図を作っている元データです。選ぶとその区間を地図の中心に表示します。</p>
         </div>
         <button className="export-button" type="button" onClick={onExport} disabled={journeys.length === 0}>
           <Icon name="download" size={19} />
@@ -56,8 +56,9 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
         <div className="history-filters" aria-label="履歴を絞り込む">
           {([
             ['all', 'すべて'],
-            ['road', '道路'],
-            ['rail', '鉄道'],
+            ['road', '車'],
+            ['walk', '徒歩'],
+            ['rail', '電車'],
           ] as const).map(([value, label]) => (
             <button
               key={value}
@@ -66,7 +67,7 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
               onClick={() => setFilter(value)}
               aria-pressed={filter === value}
             >
-              {value !== 'all' ? <Icon name={value === 'road' ? 'road' : 'rail'} size={18} /> : null}
+              {value !== 'all' ? <Icon name={value} size={18} /> : null}
               {label}
             </button>
           ))}
@@ -83,7 +84,7 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
             <li key={journey.id}>
               <button className="history-main-action" type="button" onClick={() => onSelect(journey)}>
                 <span className={`journey-icon is-${journey.mode}`}>
-                  <Icon name={journey.mode === 'road' ? 'road' : 'rail'} />
+                  <Icon name={journey.mode} />
                 </span>
                 <span className="history-copy">
                   <strong>{journey.name}</strong>
@@ -110,10 +111,9 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
         <div className="history-empty">
           <Icon name="route" size={34} />
           <h2>該当する記録はありません</h2>
-          <p>地図画面からGPS記録を始めるか、デモで動きを試せます。</p>
+          <p>地図画面の「記録をはじめる」から最初の区間を残せます。</p>
         </div>
       )}
     </main>
   )
 }
-

@@ -87,7 +87,7 @@ export function useJourneyRecorder({ mode, onSave }: UseJourneyRecorderOptions) 
     }).format(current.startedAt)
     const journey: Journey = {
       id: createId(),
-      name: `${current.mode === 'road' ? '道路' : '鉄道'}の記録 · ${dateLabel}`,
+      name: `${current.mode === 'road' ? '車' : current.mode === 'walk' ? '徒歩' : '電車'}の記録 · ${dateLabel}`,
       mode: current.mode,
       source: current.source,
       startedAt: new Date(current.startedAt).toISOString(),
@@ -187,4 +187,3 @@ export function useJourneyRecorder({ mode, onSave }: UseJourneyRecorderOptions) 
     dismissError,
   }
 }
-

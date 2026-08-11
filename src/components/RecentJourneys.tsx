@@ -44,13 +44,13 @@ export function RecentJourneys({ journeys, selectedId, onSelect, onOpenHistory }
                 onClick={() => onSelect(journey)}
               >
                 <span className={`journey-icon is-${journey.mode}`}>
-                  <Icon name={journey.mode === 'road' ? 'road' : 'rail'} size={20} />
+                  <Icon name={journey.mode} size={20} />
                 </span>
                 <span className="journey-copy">
                   <strong>{journey.name}</strong>
                   <small>
                     {dateFormatter.format(new Date(journey.startedAt))}
-                    <i>{journey.mode === 'road' ? '道路' : '鉄道'}</i>
+                    <i>{journey.mode === 'road' ? '車' : journey.mode === 'walk' ? '徒歩' : '電車'}</i>
                   </small>
                 </span>
                 <span className="journey-distance">{formatDistance(journey.distanceMeters)}</span>

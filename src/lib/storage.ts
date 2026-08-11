@@ -17,7 +17,7 @@ export interface StorageLike {
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value)
 
-const isMode = (value: unknown): value is JourneyMode => value === 'road' || value === 'rail'
+const isMode = (value: unknown): value is JourneyMode => value === 'road' || value === 'walk' || value === 'rail'
 const isSource = (value: unknown): value is JourneySource => value === 'gps' || value === 'demo'
 
 function isTrackPoint(value: unknown): value is TrackPoint {
@@ -101,4 +101,3 @@ export function clearJourneys(storage: StorageLike | null = getBrowserStorage())
     return false
   }
 }
-
