@@ -29,6 +29,10 @@ export interface ActiveJourney {
   distanceMeters: number
   durationSeconds: number
   currentSpeedKmh: number
+  /** 直近に受け取ったGPSの誤差半径（m）。採用しなかった点も含む */
+  latestAccuracyMeters: number | null
+  /** 直近に受け取った点が精度不足で採用されなかったか */
+  waitingForAccuracy: boolean
 }
 
 export type RecorderStatus = 'idle' | 'requesting' | 'recording' | 'error'

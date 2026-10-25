@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import type { LatLngExpression, LatLngTuple } from 'leaflet'
 import {
   AttributionControl,
@@ -20,10 +20,14 @@ interface MapCanvasProps {
   isRecording: boolean
   activePoints: TrackPoint[]
   journeys: Journey[]
+  /** 見本として表示するサンプル経路。記録とは別の見た目で描く */
+  sampleJourneys?: Journey[]
   focusJourneyId?: string
 }
 
 const DEFAULT_CENTER: LatLngExpression = [35.6812, 139.7671]
+// 毎回新しい配列を作ると地図の再フィットが走るため、空配列は共有する
+const NO_JOURNEYS: Journey[] = []
 
 function toLatLngs(points: TrackPoint[]): LatLngTuple[] {
   return points.map((point) => [point.latitude, point.longitude])
@@ -53,6 +57,7 @@ export function MapCanvas({
   isRecording,
   activePoints,
   journeys,
+  sampleJourneys = NO_JOURNEYS,
   focusJourneyId,
 }: MapCanvasProps) {
   const [focusRequest, setFocusRequest] = useState(0)
@@ -61,7 +66,11 @@ export function MapCanvas({
     () => journeys.find((journey) => journey.id === focusJourneyId),
     [focusJourneyId, journeys],
   )
-  const allCoveragePoints = useMemo(() => journeys.flatMap((journey) => journey.points), [journeys])
+  // 自分の記録があればそれを優先して地図に収め、なければサンプルを収める
+  const allCoveragePoints = useMemo(
+    () => (journeys.length > 0 ? journeys : sampleJourneys).flatMap((journey) => journey.points),
+    [journeys, sampleJourneys],
+  )
   const focusPoints = activePoints.length > 0
     ? activePoints
     : focusJourney?.points ?? allCoveragePoints
@@ -95,6 +104,33 @@ export function MapCanvas({
         <ZoomControl position="topright" />
         <AttributionControl position="bottomright" prefix={false} />
         <ViewportController points={focusPoints} focusRequest={focusRequest} />
+
+        {sampleJourneys.map((journey) => {
+          const positions = toLatLngs(journey.points)
+          if (positions.length < 2) return null
+          // 背景地図の模様に埋もれないよう、白い縁取りの上に点線を重ねる
+          return (
+            <Fragment key={journey.id}>
+              <Polyline
+                positions={positions}
+                interactive={false}
+                pathOptions={{ color: '#ffffff', lineCap: 'round', lineJoin: 'round', opacity: 0.9, weight: 9 }}
+              />
+              <Polyline
+                positions={positions}
+                interactive={false}
+                pathOptions={{
+                  color: '#4d5d78',
+                  dashArray: '1 11',
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                  opacity: 1,
+                  weight: 5,
+                }}
+              />
+            </Fragment>
+          )
+        })}
 
         {journeys.map((journey) => {
           const positions = toLatLngs(journey.points)
@@ -146,6 +182,7 @@ export function MapCanvas({
       <div className="map-legend" aria-label="地図の凡例">
         <span><i className="legend-visited" />通った道</span>
         <span><i className="legend-recording" />記録中</span>
+        {sampleJourneys.length > 0 ? <span><i className="legend-sample" />サンプル</span> : null}
       </div>
       <button
         className="map-recenter-control"

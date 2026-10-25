@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DEMO_TRACKS } from '../data/demo'
 import { calculateSpeedKmh, distanceBetween } from '../lib/geo'
+import { FILTER_PROFILES, evaluatePoint, simplifyTrack } from '../lib/trackFilter'
 import type { ActiveJourney, Journey, JourneyMode, RecorderStatus, TrackPoint } from '../types'
 
 interface UseJourneyRecorderOptions {
@@ -21,6 +22,8 @@ const createActiveJourney = (mode: JourneyMode, source: 'gps' | 'demo'): ActiveJ
   distanceMeters: 0,
   durationSeconds: 0,
   currentSpeedKmh: 0,
+  latestAccuracyMeters: null,
+  waitingForAccuracy: false,
 })
 
 export function useJourneyRecorder({ mode, onSave }: UseJourneyRecorderOptions) {
@@ -72,11 +75,17 @@ export function useJourneyRecorder({ mode, onSave }: UseJourneyRecorderOptions) 
   const finish = useCallback(() => {
     const current = activeRef.current
     stopResources()
-    if (!current || current.points.length === 0) {
+    if (!current || current.points.length < 2) {
       activeRef.current = null
       setActive(null)
       setStatus('error')
-      setErrorMessage('位置を取得できなかったため、記録は保存しませんでした。')
+      setErrorMessage(
+        !current || current.points.length === 0
+          ? current?.latestAccuracyMeters != null
+            ? 'GPSの精度が低い状態が続いたため、記録は保存しませんでした。空が開けた場所でお試しください。'
+            : '位置を取得できなかったため、記録は保存しませんでした。'
+          : '移動がほとんど記録されなかったため、保存しませんでした。',
+      )
       return
     }
 
@@ -94,7 +103,10 @@ export function useJourneyRecorder({ mode, onSave }: UseJourneyRecorderOptions) 
       endedAt: new Date(endedAt).toISOString(),
       distanceMeters: current.distanceMeters,
       durationSeconds: Math.max(current.durationSeconds, Math.floor((endedAt - current.startedAt) / 1000)),
-      points: current.points,
+      // 線の形を保ったまま点を間引いて保存する（距離は間引く前の値を使う）
+      points: current.source === 'gps'
+        ? simplifyTrack(current.points, FILTER_PROFILES[current.mode].simplifyToleranceMeters)
+        : current.points,
     }
     onSave(journey)
     activeRef.current = null
@@ -105,12 +117,28 @@ export function useJourneyRecorder({ mode, onSave }: UseJourneyRecorderOptions) 
   const appendPoint = useCallback((point: TrackPoint) => {
     updateActive((current) => {
       const previous = current.points.at(-1)
+      const accuracy = typeof point.accuracy === 'number' ? point.accuracy : null
+      // デモ記録は既知の経路なので、GPS用のノイズ除去を通さない
+      const decision = current.source === 'gps'
+        ? evaluatePoint(previous, point, FILTER_PROFILES[current.mode])
+        : 'accepted'
+      if (decision !== 'accepted') {
+        return {
+          ...current,
+          latestAccuracyMeters: accuracy,
+          waitingForAccuracy: decision === 'low-accuracy',
+          // 停止中のふらつきは「止まっている」とみなす
+          currentSpeedKmh: decision === 'too-close' ? 0 : current.currentSpeedKmh,
+        }
+      }
       const addedDistance = previous ? distanceBetween(previous, point) : 0
       return {
         ...current,
         points: [...current.points, point],
         distanceMeters: current.distanceMeters + addedDistance,
         currentSpeedKmh: calculateSpeedKmh(previous, point),
+        latestAccuracyMeters: accuracy,
+        waitingForAccuracy: false,
       }
     })
   }, [updateActive])

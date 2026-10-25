@@ -1,16 +1,18 @@
 import { formatDistance, formatDuration } from '../lib/geo'
+import type { WakeLockState } from '../hooks/useWakeLock'
 import type { ActiveJourney, RecorderStatus } from '../types'
 
 interface RecordingPanelProps {
   status: RecorderStatus
   active: ActiveJourney | null
   errorMessage: string
+  wakeLock?: WakeLockState
   onStartGps: () => void
   onFinish: () => void
   onDismissError: () => void
 }
 
-export function RecordingPanel({ status, active, errorMessage, onStartGps, onFinish, onDismissError }: RecordingPanelProps) {
+export function RecordingPanel({ status, active, errorMessage, wakeLock = 'idle', onStartGps, onFinish, onDismissError }: RecordingPanelProps) {
   const isActive = status === 'recording' || status === 'requesting'
 
   return (
@@ -26,6 +28,14 @@ export function RecordingPanel({ status, active, errorMessage, onStartGps, onFin
         <p className="recording-live-status" aria-live="polite">
           記録中 · {formatDistance(active.distanceMeters)} · {formatDuration(active.durationSeconds)}
         </p>
+      ) : null}
+      {status === 'recording' && active?.waitingForAccuracy ? (
+        <p className="recording-live-status is-weak">
+          GPSの精度を待っています{active.latestAccuracyMeters != null ? `（誤差 約${Math.round(active.latestAccuracyMeters)}m）` : ''}
+        </p>
+      ) : null}
+      {isActive && (wakeLock === 'unsupported' || wakeLock === 'failed') ? (
+        <p className="recording-wake-hint">画面が消えると記録が止まります。記録中は画面を点けたままにしてください。</p>
       ) : null}
       <button
         className={`primary-record-button ${isActive ? 'is-recording' : ''}`}

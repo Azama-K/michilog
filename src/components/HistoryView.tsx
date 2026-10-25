@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { formatDistance, formatDuration } from '../lib/geo'
 import type { Journey, JourneyMode } from '../types'
 import { Icon } from './Icon'
@@ -11,6 +11,7 @@ interface HistoryViewProps {
   onDelete: (journeyId: string) => void
   onClear: () => void
   onExport: () => void
+  importButton?: ReactNode
 }
 
 const fullDateFormatter = new Intl.DateTimeFormat('ja-JP', {
@@ -22,7 +23,7 @@ const fullDateFormatter = new Intl.DateTimeFormat('ja-JP', {
   minute: '2-digit',
 })
 
-export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }: HistoryViewProps) {
+export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport, importButton }: HistoryViewProps) {
   const [filter, setFilter] = useState<HistoryFilter>('all')
   const filteredJourneys = useMemo(
     () => journeys.filter((journey) => filter === 'all' || journey.mode === filter),
@@ -40,10 +41,13 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
           <h1>通過記録</h1>
           <p>青い地図を作っている元データです。選ぶとその区間を地図の中心に表示します。</p>
         </div>
-        <button className="export-button" type="button" onClick={onExport} disabled={journeys.length === 0}>
-          <Icon name="download" size={19} />
-          JSONでバックアップ
-        </button>
+        <div className="history-backup-actions">
+          <button className="export-button" type="button" onClick={onExport} disabled={journeys.length === 0}>
+            <Icon name="download" size={19} />
+            JSONでバックアップ
+          </button>
+          {importButton}
+        </div>
       </section>
 
       <section className="history-summary" aria-label="履歴の集計">
@@ -87,7 +91,10 @@ export function HistoryView({ journeys, onSelect, onDelete, onClear, onExport }:
                   <Icon name={journey.mode} />
                 </span>
                 <span className="history-copy">
-                  <strong>{journey.name}</strong>
+                  <strong>
+                    {journey.name}
+                    {journey.source === 'demo' ? <em className="demo-badge">デモ</em> : null}
+                  </strong>
                   <small>{fullDateFormatter.format(new Date(journey.startedAt))}</small>
                 </span>
                 <span className="history-meta">
